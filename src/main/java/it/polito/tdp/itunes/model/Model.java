@@ -4,97 +4,83 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
-import org.jgrapht.alg.connectivity.ConnectivityInspector;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleGraph;
 
 import it.polito.tdp.itunes.db.ItunesDAO;
-import javafx.util.Pair;
 
 public class Model {
 	
-	private Graph<Album, DefaultEdge> graph;
-	private List<Album> vertici;
 	private ItunesDAO dao ;
+	private Graph<Album, DefaultEdge> grafo ;
+	private List<Album> vertici;
+	private Map<Integer, Album> idMapAlbum;
 	
 	
 	public Model() {
 		
-		this.graph = new SimpleGraph<>(DefaultEdge.class);
-		this.vertici = new ArrayList<>();
-		dao = new ItunesDAO();
-		
+		this.dao= new ItunesDAO();
+		this.grafo = new SimpleGraph<Album, DefaultEdge>(DefaultEdge.class);
+		this.idMapAlbum = new HashMap<Integer, Album>();
 	}
 	
-	
-	//aggiungere veritici e archi
 	public void loadNodes(double d) {
 		
 		if (this.vertici.isEmpty()) {
-			this.vertici = dao.getFilteredAlbum(d);
+			this.vertici = this.dao.getVertici(d);
 		}
 	}
 	
 	public void clearGraph() {
-		this.graph = new SimpleGraph<>(DefaultEdge.class);
-		this.vertici = new ArrayList<>();
+		
+		this.grafo = new SimpleGraph<Album, DefaultEdge>(DefaultEdge.class);
+		this.vertici = new ArrayList<Album>();
 	}
 	
-	public void buildGraph(double d) {
+	public void creaGrafo(double d) {
 		
-		this.clearGraph();
-		this.loadNodes(d);
+		clearGraph();
+		loadNodes(d);
 		
-		//aggiugnere i vertici
-		Graphs.addAllVertices(this.graph, this.vertici);
+		Graphs.addAllVertices(this.grafo, this.vertici);
 		
-		//aggiungere gli archi 
-		//due nodi sono connessi se almeno una canzone si trova nella stessa playlist
 		
-		//creare una lista di archi 
-		List<org.jgrapht.alg.util.Pair<Integer, Integer>> archi  = dao.getAlbumConnessi();
-		//in questo modo si ottengono le coppie di nodi che sono connessi
-		//ora bisogna aggiungere il tutto nel grafo
-		
-		//idMap
-		Map<Integer, Album> idMapAlbum = new HashMap<Integer, Album>();
-		
-		for (org.jgrapht.alg.util.Pair<Integer, Integer> arco : archi ) {
-			
-			//associare id con l'oggetto Album --> necessario un IdMap
-			if (idMapAlbum.containsKey(arco.getFirst()) && idMapAlbum.containsKey(arco.getSecond())) {
-				
-				//se sono presenti, allora aggiungere
-				this.graph.addEdge(idMapAlbum.get(arco.getFirst()), idMapAlbum.get(arco.getSecond()));
+		for (Album a : this.grafo.vertexSet()) {
+			if (idMapAlbum.get(a.getAlbumId())==null) {
+				idMapAlbum.put(a.getAlbumId(), a);
 			}
 		}
-	
+		
+		
+		List<Arco> allArchi = this.dao.getAllArchi();
+		
+		for (Arco arco : allArchi) {
+			int id1 = arco.getIdAlbum1();
+			int id2 = arco.getIdAlbum2();
+			
+			//se questi nodi sono presenti tra i vertici del grafo allora connetterli
+			if (idMapAlbum.get(id1)!= null && idMapAlbum.get(id2)!= null) {
+				Album a1 = idMapAlbum.get(id1);
+				Album a2 = idMapAlbum.get(id2);
+				this.grafo.addEdge(a1, a2);
+			}
+		}
+		
 		
 	}
 	
-	//metodo per ottenere tutti i nodi adiacenti --> restituisce l'insieme dei nodi adiacenti
-	public Set<Album> getComponente(Album a1) {
-		ConnectivityInspector<Album, DefaultEdge> ci =
-				new ConnectivityInspector<>(this.graph) ;
-		return ci.connectedSetOf(a1) ;
+	public int getNumVertici() {
+		return this.grafo.vertexSet().size();
 	}
 	
-	
-	public int verticiSize() {
-		return this.graph.vertexSet().size();
-	}
-	
-	public int archiSize() {
-		return this.graph.edgeSet().size();
+	public int getNumArchi() {
+		return this.grafo.edgeSet().size();
 	}
 	
 	public List<Album> getVertici() {
 		return this.vertici;
 	}
-
-	
 }
