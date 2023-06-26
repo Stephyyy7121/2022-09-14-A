@@ -1,9 +1,14 @@
 package it.polito.tdp.itunes.model;
 
+import java.util.List;
+
 public class Album implements Comparable<Album>{
 	private Integer albumId;
 	private String title;
 	private Double durata;
+	
+	//lista di track
+	public List<Track> listTrack;
 	
 	public Album(Integer albumId, String title, Double durata) {
 		super();

@@ -5,7 +5,10 @@
 package it.polito.tdp.itunes;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
+
+import it.polito.tdp.itunes.model.Album;
 import it.polito.tdp.itunes.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -34,7 +37,7 @@ public class FXMLController {
     private Button btnSet; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbA1"
-    private ComboBox<?> cmbA1; // Value injected by FXMLLoader
+    private ComboBox<Album> cmbA1; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtDurata"
     private TextField txtDurata; // Value injected by FXMLLoader
@@ -52,6 +55,30 @@ public class FXMLController {
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
+    	
+    	String durataS = txtDurata.getText() ;
+    	if(durataS.equals("")) {
+    		txtResult.appendText("Valore 'd' obbligatorio\n");
+    		return ;
+    	}
+    	Double duration ;
+    	try {
+    		duration = Double.parseDouble(durataS) ;
+    	} catch(NumberFormatException e) {
+    		txtResult.appendText("La durata deve essere un valore numerico\n");
+    		return ;
+    	}
+
+    	model.buildGraph(duration);
+
+		
+		txtResult.setText("Il grafo e' stato creato!");
+		txtResult.appendText("#Vertici: " + model.verticiSize() +"\n #Archi: " + model.archiSize());
+    	
+    	List<Album> vertici = this.model.getVertici();;
+    	this.cmbA1.getItems().clear();
+    	this.cmbA1.getItems().addAll(vertici);
+    	
     	
     }
 
