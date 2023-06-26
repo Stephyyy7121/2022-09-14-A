@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import it.polito.tdp.itunes.model.Album;
+import it.polito.tdp.itunes.model.Arco;
 import it.polito.tdp.itunes.model.Artist;
 import it.polito.tdp.itunes.model.Genre;
 import it.polito.tdp.itunes.model.MediaType;
@@ -143,64 +144,57 @@ public class ItunesDAO {
 	
 	
 	//ESERCIZIO 1 PUNTO A 
-	//prendere tutti gli album la cui SOMMA delle durate delle canzoni sia MAGGIORE del valore inserito in input
 	
-	public List<Album> getFilteredAlbum(double d) {
+	//MINE 
+	public List<Album> getVertici(double d) {
 		
-		String sql = "SELECT a.AlbumId, a.Title, SUM(t.Milliseconds) AS somma "
-				+ "FROM album a, track "
+		String sql = "SELECT a.AlbumId, a.Title, SUM(t.Milliseconds)/1000/60 AS durata "
+				+ "FROM album a, track t "
 				+ "WHERE a.AlbumId = t.AlbumId "
-				+ "HAVING somma > ? ";
+				+ "GROUP BY a.AlbumId, a.Title "
+				+ "HAVING durata > ? "
+				+ "ORDER BY  a.Title";
 		
 		List<Album> result = new ArrayList<Album>();
-		
 		Connection conn = DBConnect.getConnection();
-		
+		PreparedStatement st;
 		try {
-			PreparedStatement st = conn.prepareStatement(sql);
-			st.setInt(1, (int)d*60*1000);
-			ResultSet rs = st.executeQuery();
+			st = conn.prepareStatement(sql);
+			st.setDouble(1, d);
+			ResultSet res = st.executeQuery();
 			
-			while(rs.next()) {
-				
-				Album album = new Album(rs.getInt("AlbumId"), rs.getString("Title"), rs.getDouble("somma")/60/1000);
-				result.add(album);
+			while (res.next()) {
+				result.add(new Album(res.getInt("AlbumId"), res.getString("Title"), res.getDouble("durata")));
 			}
-			
 			conn.close();
-			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return null; 
+			return null;
 		}
-		
 		return result;
+		
+		
 	}
-
-	public List<Pair<Integer, Integer>> getAlbumConnessi() {
-		// TODO Auto-generated method stub
+	
+	
+	public List<Arco> getAllArchi() {
 		
-		String sql = "SELECT DISTINCT  a1.AlbumId AS id1, a2.AlbumId AS id2 "
-				+ "FROM album a1, album a2,  track t1, track t2, playlisttrack pt1, playlisttrack pt2 "
-				+ "WHERE a1.AlbumId = t1.AlbumId AND a2.AlbumId = t2.AlbumId AND pt1.TrackId = t1.TrackId AND t2.TrackId = pt2.TrackId AND pt1.PlaylistId = pt2.PlaylistId "
-				+ "AND a1.AlbumId != a2.AlbumId ";
+		String sql ="SELECT DISTINCT t1.AlbumId AS id1, t2.AlbumId AS id2 "
+				+ "FROM track t1, track t2, playlisttrack pt1, playlisttrack pt2 "
+				+ "WHERE t1.AlbumId > t2.AlbumId AND t1.TrackId = pt1.TrackId AND t2.TrackId = pt2.TrackId AND pt1.PlaylistId = pt2.PlaylistId ";
 		
-		List<Pair<Integer, Integer>> result = new ArrayList<>();
+		List<Arco> result = new ArrayList<Arco>();
 		
 		Connection conn = DBConnect.getConnection();
-		
 		try {
 			PreparedStatement st = conn.prepareStatement(sql);
+			ResultSet res = st.executeQuery();
 			
-			ResultSet rs = st.executeQuery();
-			
-			while(rs.next()) {
-				result.add(new Pair<Integer, Integer>(rs.getInt("id1"), rs.getInt("id2")));
+			while (res.next()) {
+				result.add(new Arco(res.getInt("id1"), res.getInt("id2")));
 			}
-			
 			conn.close();
-			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -210,6 +204,5 @@ public class ItunesDAO {
 		return result;
 		
 	}
-	
 	
 }
