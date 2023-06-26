@@ -6,6 +6,8 @@ package it.polito.tdp.itunes;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+
+import it.polito.tdp.itunes.model.Album;
 import it.polito.tdp.itunes.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -34,7 +36,7 @@ public class FXMLController {
     private Button btnSet; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbA1"
-    private ComboBox<?> cmbA1; // Value injected by FXMLLoader
+    private ComboBox<Album> cmbA1; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtDurata"
     private TextField txtDurata; // Value injected by FXMLLoader
@@ -44,6 +46,7 @@ public class FXMLController {
 
     @FXML // fx:id="txtX"
     private TextField txtX; // Value injected by FXMLLoader
+    private boolean creatoGrafo = false;
 
     @FXML
     void doComponente(ActionEvent event) {
@@ -53,6 +56,24 @@ public class FXMLController {
     @FXML
     void doCreaGrafo(ActionEvent event) {
     	
+    	txtResult.clear();
+    	String input = txtDurata.getText();
+    	if (input.compareTo("")==0) {
+    		txtResult.appendText("Non e' stato inserito un valore\n");
+    	}
+    	double d = 0.0;
+    	try {
+    		
+    	}catch (NumberFormatException e ) {
+    		txtResult.appendText("Non e' stato inserito un valore accettabile.\n");
+    		return;
+    	}
+    	this.model.creaGrafo(d);
+    	this.creatoGrafo = true;
+    	
+    	txtResult.appendText("Grafo creato!\n#Vertici: " + this.model.getNumVertici()+"\n#Arci: " + this.model.getNumArchi()+"\n");
+    	
+    	this.cmbA1.getItems().addAll(this.model.getVertici());
     }
 
     @FXML
