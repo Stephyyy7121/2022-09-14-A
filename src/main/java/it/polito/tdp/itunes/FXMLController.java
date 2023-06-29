@@ -5,8 +5,8 @@
 package it.polito.tdp.itunes;
 
 import java.net.URL;
-import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 import it.polito.tdp.itunes.model.Album;
 import it.polito.tdp.itunes.model.Model;
@@ -47,44 +47,79 @@ public class FXMLController {
 
     @FXML // fx:id="txtX"
     private TextField txtX; // Value injected by FXMLLoader
+    private boolean creatoGrafo = false;
 
     @FXML
     void doComponente(ActionEvent event) {
     	
+    	txtResult.clear();
+    	if (!this.creatoGrafo) {
+    		txtResult.appendText("Creare grafo!\n");
+    	}
+    	
+    	Album a = this.cmbA1.getValue();
+    	
+    	if (a==null) {
+    		txtResult.appendText("Inserire un album.\n");
+    	}
+    	Set<Album> connessa = this.model.getConnessa(a);
+    	double dTot = this.model.durataTotConnesssa(connessa);
+    	
+    	txtResult.appendText("Componente connessa di " + a.getTitle() + ": \nDimensione componente = " + connessa.size()+"\nDurata componente = " + dTot);
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
     	
-    	String durataS = txtDurata.getText() ;
-    	if(durataS.equals("")) {
-    		txtResult.appendText("Valore 'd' obbligatorio\n");
-    		return ;
+    	txtResult.clear();
+    	String input = txtDurata.getText();
+    	if (input.compareTo("")==0) {
+    		txtResult.appendText("Non e' stato inserito un valore\n");
     	}
-    	Double duration ;
+    	double d = 0.0;
     	try {
-    		duration = Double.parseDouble(durataS) ;
-    	} catch(NumberFormatException e) {
-    		txtResult.appendText("La durata deve essere un valore numerico\n");
-    		return ;
+    		d = Double.parseDouble(input);
+    	}catch (NumberFormatException e ) {
+    		txtResult.appendText("Non e' stato inserito un valore accettabile.\n");
+    		return;
     	}
-
-    	model.buildGraph(duration);
-
-		
-		txtResult.setText("Il grafo e' stato creato!");
-		txtResult.appendText("#Vertici: " + model.verticiSize() +"\n #Archi: " + model.archiSize());
+    	this.model.creaGrafo(d);
+    	this.creatoGrafo = true;
     	
-    	List<Album> vertici = this.model.getVertici();;
-    	this.cmbA1.getItems().clear();
-    	this.cmbA1.getItems().addAll(vertici);
+    	txtResult.appendText("Grafo creato!\n#Vertici: " + this.model.getNumVertici()+"\n#Arci: " + this.model.getNumArchi()+"\n");
     	
-    	
+    	this.cmbA1.getItems().addAll(this.model.getVertici());
     }
 
     @FXML
     void doEstraiSet(ActionEvent event) {
-
+    	
+    	txtResult.clear();
+    	if (!this.creatoGrafo) {
+    		txtResult.appendText("Creare grafo!\n");
+    	}
+    	
+    	Album a = this.cmbA1.getValue();
+    	String input = txtX.getText();
+    	if (a==null || input.compareTo("")==0) {
+    		txtResult.appendText("Inserire un valore.\n");
+    	}
+    	
+    	double dTot = 0.0;
+    	
+    	try {
+    		dTot = Double.parseDouble(input);
+    	}catch (NumberFormatException e ) {
+    		txtResult.appendText("Inserito valore non accettabile.\n");
+    		return;
+    	}
+    	
+    	Set<Album> set = this.model.getSet(a, dTot);
+    	txtResult.appendText("Ricorsione : \nDuratatotale del set trovato " + this.model.durataTotConnesssa(set)+"\n");
+    	for (Album al : set) {
+    		txtResult.appendText(al.toString()+"\n");
+    	}
+    	
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete

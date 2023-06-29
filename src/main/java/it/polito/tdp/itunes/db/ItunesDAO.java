@@ -148,7 +148,7 @@ public class ItunesDAO {
 	//MINE 
 	public List<Album> getVertici(double d) {
 		
-		String sql = "SELECT a.AlbumId, a.Title, SUM(t.Milliseconds)/1000/60 AS durata "
+		String sql = "SELECT DISTINCT a.AlbumId, a.Title, SUM(t.Milliseconds)/1000/60 AS durata "
 				+ "FROM album a, track t "
 				+ "WHERE a.AlbumId = t.AlbumId "
 				+ "GROUP BY a.AlbumId, a.Title "
